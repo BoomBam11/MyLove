@@ -9,7 +9,7 @@
       href="https://fonts.googleapis.com/css2?family=Zeyada&display=swap"
     />
     <style>
-      /* Add your CSS here */
+      /* (your existing CSS - no changes) */
       body {
         height: 100vh;
         display: flex;
@@ -108,14 +108,6 @@
     </style>
   </head>
   <body>
-    <!-- Audio -->
-    <audio
-      id="background-music"
-      src="images/WhatsApp Audio 2025-04-26 at 5.00.28 PM (1).mpeg"
-      preload="auto"
-      loop
-    ></audio>
-
     <!-- Paper elements that can be dragged -->
     <div class="paper heart"></div>
     <div class="paper image">
@@ -144,7 +136,7 @@
       <p class="p1">Drag the papers to move!</p>
     </div>
 
-    <!-- Love Message -->
+    <!-- Love Message (Initially hidden) -->
     <div class="love-message">
       <p>
         From the moment I met you, my world became brighter, my smile became
@@ -152,12 +144,18 @@
         needed.
       </p>
       <p>
-        Sakshi, with every beat of my heart, I just want to say... I Love You.
+        Sakshi, with every beat of my heart, I just want to say... I Love You
+        💕.
       </p>
       <p>— ADITYA</p>
     </div>
 
-    <!-- JavaScript -->
+    <!-- 🔥 ADD this AUDIO tag (NEW) -->
+    <audio
+      id="dragSound"
+      src="images/WhatsApp Audio 2025-04-26 at 5.00.28 PM (1).mpeg"
+    ></audio>
+
     <script>
       let highestZ = 1;
       let totalPapers = 6;
@@ -179,83 +177,49 @@
         rotating = false;
 
         init(paper) {
-          // MOUSE + TOUCH move
-          const moveHandler = (e) => {
-            let clientX, clientY;
-            if (e.type.startsWith("touch")) {
-              clientX = e.touches[0].clientX;
-              clientY = e.touches[0].clientY;
+          const updateMousePosition = (e) => {
+            if (e.touches) {
+              this.mouseX = e.touches[0].clientX;
+              this.mouseY = e.touches[0].clientY;
             } else {
-              clientX = e.clientX;
-              clientY = e.clientY;
-            }
-
-            if (!this.rotating) {
-              this.mouseX = clientX;
-              this.mouseY = clientY;
-              this.velX = this.mouseX - this.prevMouseX;
-              this.velY = this.mouseY - this.prevMouseY;
-            }
-
-            const dirX = clientX - this.mouseTouchX;
-            const dirY = clientY - this.mouseTouchY;
-            const dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
-            const dirNormalizedX = dirX / dirLength;
-            const dirNormalizedY = dirY / dirLength;
-
-            const angle = Math.atan2(dirNormalizedY, dirNormalizedX);
-            let degrees = (180 * angle) / Math.PI;
-            degrees = (360 + Math.round(degrees)) % 360;
-            if (this.rotating) {
-              this.rotation = degrees;
-            }
-
-            if (this.holdingPaper) {
-              if (!this.rotating) {
-                this.currentPaperX += this.velX;
-                this.currentPaperY += this.velY;
-              }
-              this.prevMouseX = this.mouseX;
-              this.prevMouseY = this.mouseY;
-
-              paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
+              this.mouseX = e.clientX;
+              this.mouseY = e.clientY;
             }
           };
 
-          // Listen to mousemove and touchmove
-          document.addEventListener("mousemove", moveHandler);
-          document.addEventListener("touchmove", moveHandler);
+          document.addEventListener("mousemove", (e) => {
+            updateMousePosition(e);
+            this.movePaper(paper);
+          });
 
-          // Mouse down / Touch start
-          const downHandler = (e) => {
+          document.addEventListener("touchmove", (e) => {
+            updateMousePosition(e);
+            this.movePaper(paper);
+          });
+
+          const startDrag = (e) => {
+            e.preventDefault();
+            updateMousePosition(e);
+
             if (this.holdingPaper) return;
             this.holdingPaper = true;
+
+            // 🎵 Play sound when dragging starts (NEW)
+            const audio = document.getElementById("dragSound");
+            audio.currentTime = 0;
+            audio.play();
 
             paper.style.zIndex = highestZ;
             highestZ += 1;
 
-            let clientX, clientY;
-            if (e.type.startsWith("touch")) {
-              clientX = e.touches[0].clientX;
-              clientY = e.touches[0].clientY;
-            } else {
-              clientX = e.clientX;
-              clientY = e.clientY;
-            }
-
-            this.mouseTouchX = clientX;
-            this.mouseTouchY = clientY;
-            this.prevMouseX = clientX;
-            this.prevMouseY = clientY;
+            this.mouseTouchX = this.mouseX;
+            this.mouseTouchY = this.mouseY;
+            this.prevMouseX = this.mouseX;
+            this.prevMouseY = this.mouseY;
           };
 
-          paper.addEventListener("mousedown", downHandler);
-          paper.addEventListener("touchstart", downHandler);
-
-          // Mouse up / Touch end
-          const upHandler = (e) => {
+          const stopDrag = () => {
             if (!this.holdingPaper) return;
-
             this.holdingPaper = false;
             this.rotating = false;
 
@@ -265,35 +229,51 @@
             }
           };
 
-          window.addEventListener("mouseup", upHandler);
-          window.addEventListener("touchend", upHandler);
+          paper.addEventListener("mousedown", startDrag);
+          paper.addEventListener("touchstart", startDrag);
+          window.addEventListener("mouseup", stopDrag);
+          window.addEventListener("touchend", stopDrag);
+        }
+
+        movePaper(paper) {
+          if (!this.holdingPaper) return;
+
+          this.velX = this.mouseX - this.prevMouseX;
+          this.velY = this.mouseY - this.prevMouseY;
+
+          const dirX = this.mouseX - this.mouseTouchX;
+          const dirY = this.mouseY - this.mouseTouchY;
+          const dirLength = Math.sqrt(dirX * dirX + dirY * dirY) || 1;
+          const dirNormalizedX = dirX / dirLength;
+          const dirNormalizedY = dirY / dirLength;
+
+          const angle = Math.atan2(dirNormalizedY, dirNormalizedX);
+          let degrees = (180 * angle) / Math.PI;
+          degrees = (360 + Math.round(degrees)) % 360;
+
+          if (this.rotating) {
+            this.rotation = degrees;
+          }
+
+          if (!this.rotating) {
+            this.currentPaperX += this.velX;
+            this.currentPaperY += this.velY;
+          }
+          this.prevMouseX = this.mouseX;
+          this.prevMouseY = this.mouseY;
+
+          paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
         }
       }
 
       function showLoveMessage() {
-        const loveMessage = document.querySelector(".love-message");
-        loveMessage.classList.add("visible");
+        document.querySelector(".love-message").classList.add("visible");
       }
 
       const papers = Array.from(document.querySelectorAll(".paper"));
       papers.forEach((paper) => {
         const p = new Paper();
         p.init(paper);
-      });
-
-      // Background music auto-play
-      window.addEventListener("load", () => {
-        const music = document.getElementById("background-music");
-        music.volume = 0.5;
-        music.play().catch(() => {
-          document.body.addEventListener(
-            "click",
-            () => {
-              music.play();
-            },
-            { once: true }
-          );
-        });
       });
     </script>
   </body>
