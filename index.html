@@ -9,7 +9,6 @@
       href="https://fonts.googleapis.com/css2?family=Zeyada&display=swap"
     />
     <style>
-      /* (your existing CSS - no changes) */
       body {
         height: 100vh;
         display: flex;
@@ -108,7 +107,13 @@
     </style>
   </head>
   <body>
-    <!-- Paper elements that can be dragged -->
+    <!-- Music Audio -->
+    <audio
+      id="dragSound"
+      src="images/WhatsApp Audio 2025-04-26 at 5.00.28 PM (1).mpeg"
+    ></audio>
+
+    <!-- Paper elements -->
     <div class="paper heart"></div>
     <div class="paper image">
       <p>and I fallen in</p>
@@ -136,7 +141,7 @@
       <p class="p1">Drag the papers to move!</p>
     </div>
 
-    <!-- Love Message (Initially hidden) -->
+    <!-- Love Message -->
     <div class="love-message">
       <p>
         From the moment I met you, my world became brighter, my smile became
@@ -150,16 +155,11 @@
       <p>— ADITYA</p>
     </div>
 
-    <!-- 🔥 ADD this AUDIO tag (NEW) -->
-    <audio
-      id="dragSound"
-      src="images/WhatsApp Audio 2025-04-26 at 5.00.28 PM (1).mpeg"
-    ></audio>
-
     <script>
       let highestZ = 1;
       let totalPapers = 6;
       let draggedCount = 0;
+      let musicStarted = false; // 🔥 New flag for music
 
       class Paper {
         holdingPaper = false;
@@ -204,10 +204,12 @@
             if (this.holdingPaper) return;
             this.holdingPaper = true;
 
-            // 🎵 Play sound when dragging starts (NEW)
-            const audio = document.getElementById("dragSound");
-            audio.currentTime = 0;
-            audio.play();
+            if (!musicStarted) {
+              const audio = document.getElementById("dragSound");
+              audio.currentTime = 0;
+              audio.play();
+              musicStarted = true;
+            }
 
             paper.style.zIndex = highestZ;
             highestZ += 1;
